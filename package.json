@@ -1,0 +1,33 @@
+{
+  "name": "gr-slack-parking-booking",
+  "version": "1.0.0",
+  "description": "example for my node.js projects",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "author": "Jakub Supa",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.3",
+    "eslint-plugin-prefer-arrow-functions": "^3.1.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.5.1"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.1",
+    "express": "^4.17.1",
+    "ip": "^1.1.5",
+    "moment": "^2.29.1",
+    "nodemon": "^2.0.13",
+    "qs": "^6.10.3",
+    "string_decoder": "^1.3.0",
+    "url": "^0.11.0"
+  },
+  "directories": {
+    "lib": "lib"
+  }
+}
