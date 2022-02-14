@@ -1,4 +1,4 @@
-// const helpers = require('../lib/helpers')
+const request = require('../lib/workers')
 
 const method = {}
 
@@ -8,8 +8,8 @@ method.get = (data, callback) => {
 }
 
 method.post = (data, callback) => {
-  console.log(data.body)
-  callback(200, { status: 'ok' }, 'json')
+  request.bookInit(data.body.response_url)
+  callback(200, '', 'mpty')
 }
 
 module.exports = method
