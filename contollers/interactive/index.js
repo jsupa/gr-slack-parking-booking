@@ -3,7 +3,7 @@
 const request = require('request')
 const options = require('../../lib/options')
 const helpers = require('../../lib/helpers')
-const { validBookDateRanage } = require('./validate')
+const { validBookDateRanage, validBookingDateTime } = require('./validate')
 
 const method = {}
 const user = {}
@@ -28,7 +28,7 @@ class User {
   }
 }
 
-method.post_book_date = (data, callback) => {
+method.post_book_date = async (data, callback) => {
   const payload = JSON.parse(data.body.payload)
   const userId = payload.user.id
   const responseUrl = payload.response_url
@@ -41,14 +41,23 @@ method.post_book_date = (data, callback) => {
   user[userId].name = payload.user.name
 
   if (validBookDateRanage(payload)) {
-    // todo pridať validácie na usera či nemá booknutý dátum a čas
-    // todo následne pridať ukladanie do databázy
-    const prettyDate = helpers.formatDate(payload.actions[0].selected_date)
-    const requestOptions = options.booking(prettyDate)
+    if (await validBookingDateTime(payload)) {
+      // todo následne pridať ukladanie do databázy
+      user[userId].date = payload.actions[0].selected_date
+      const prettyDate = helpers.formatDate(payload.actions[0].selected_date)
+      const requestOptions = await options.booking(prettyDate, user[userId])
+      // ? spraviť dinamicky zobrazovať len miesta a časy kde je volné
+      requestOptions.url = responseUrl
+      method.postResponse(requestOptions, callback)
+    } else {
+      const requestOptions = options.datepicker(
+        '*You already have a reservation for the selected day.* (please select another day)',
+        'https://code-planet.eu/images/warn.png'
+      )
 
-    requestOptions.url = responseUrl
-    user[userId].date = payload.actions[0].selected_date
-    method.postResponse(requestOptions, callback)
+      requestOptions.url = responseUrl
+      method.postResponse(requestOptions, callback)
+    }
   } else {
     const requestOptions = options.datepicker(
       '*Invalid date = ranage from today + 5 days*',
@@ -93,11 +102,11 @@ method.post_parking_place = (data, callback) => {
   const responseUrl = payload.response_url
 
   if (method.userExist(userId)) {
+    // todo validácia či neni miesto obsadené v danom čase
     user[userId].parkingPlace = payload.actions[0].selected_option.value
   } else {
     callback(400, { Error: 'User does not exist' }, 'json')
   }
-  console.log(user)
 }
 
 method.userExist = userId => {
@@ -113,7 +122,7 @@ method.initUser = userId => {
 }
 
 method.postResponse = (options, callback) => {
-  request(options, error => {
+  request(options, (error, response) => {
     if (error) callback(500, { Error: 'Something went wrong', message: error }, 'json')
     callback(200, '', 'mpty')
   })
