@@ -18,12 +18,12 @@ validator.validBookingDateTime = data => {
   return new Promise(resolve => {
     _data.read('', 'booking', (err, bookingData) => {
       if (!err && bookingData) {
-        const timeCompare = (a1, a2) => JSON.stringify(a1) === JSON.stringify(a2)
-        const userCheck = bookingData.find(
-          el => el.date === date && el.user_id === userId && timeCompare(el.time, ['AM', 'PM'])
-        )
-
-        resolve(!userCheck)
+        const userCheck = bookingData.filter(el => el.date === date && el.user_id === userId)
+        if (userCheck.length < 2) {
+          resolve(true)
+        } else {
+          resolve(false)
+        }
       } else {
         resolve(false)
         // ! err file open
