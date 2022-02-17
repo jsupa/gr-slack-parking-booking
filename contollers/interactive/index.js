@@ -101,7 +101,8 @@ method.post_select_time = (data, callback) => {
 method.post_parking_place = (data, callback) => {
   const payload = JSON.parse(data.body.payload)
   const userId = payload.user.id
-  const responseUrl = payload.response_url
+  // const responseUrl = payload.response_url
+  // ? použije sa pri validáciach
 
   if (method.userExist(userId)) {
     // todo validácia či neni miesto obsadené v danom čase
@@ -125,7 +126,7 @@ method.initUser = userId => {
 }
 
 method.postResponse = (options, callback) => {
-  request(options, (error, response) => {
+  request(options, error => {
     if (error) callback(500, { Error: 'Something went wrong', message: error }, 'json')
     callback(200, '', 'mpty')
   })

@@ -4,7 +4,8 @@
   "description": "example for my node.js projects",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "lint:check": "./node_modules/.bin/eslint . --ignore-path .gitignore"
   },
   "author": "Jakub Supa",
   "license": "ISC",

@@ -9,7 +9,7 @@ app.init = () => {
   if (config.allowWebServer === true) {
     server.init()
   } else {
-    console.log(`[ ${helpers.getTime()} ] : Web server is disabled`)
+    console.error(`[ ${helpers.getTime()} ] : Web server is disabled`)
   }
   // workers.init();
 }
