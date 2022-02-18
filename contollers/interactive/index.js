@@ -3,7 +3,7 @@
 const request = require('request')
 const options = require('../../lib/options')
 const helpers = require('../../lib/helpers')
-const { validBookDateRanage, validBookingDateTime } = require('./validate')
+const { validBookDateRanage, validBookingDateTime, validTimeDateAndParkingPlace } = require('./validate')
 
 const method = {}
 const user = {}
@@ -72,6 +72,11 @@ method.post_book_date = async (data, callback) => {
 
 method.post_reset_date = (data, callback) => {
   const payload = JSON.parse(data.body.payload)
+
+  if (method.userExist(payload.user.id)) {
+    user[payload.user.id].reset()
+  }
+
   const responseUrl = payload.response_url
   const requestOptions = options.datepicker()
 
@@ -82,7 +87,7 @@ method.post_reset_date = (data, callback) => {
 method.post_select_time = (data, callback) => {
   const payload = JSON.parse(data.body.payload)
   const userId = payload.user.id
-  // const responseUrl = payload.response_url
+  const responseUrl = payload.response_url
 
   if (method.userExist(userId)) {
     // // todo pridať validácie na usera či nemá booknutý čas
@@ -94,22 +99,57 @@ method.post_select_time = (data, callback) => {
 
     callback(200, '', 'mpty')
   } else {
-    callback(400, { Error: 'User does not exist' }, 'json')
+    const requestOptions = options.datepicker(
+      'Session expired, please try again',
+      'https://code-planet.eu/images/warn.png'
+    )
+    requestOptions.url = responseUrl
+    method.postResponse(requestOptions, callback)
   }
 }
 
-method.post_parking_place = (data, callback) => {
+method.post_parking_place = async (data, callback) => {
   const payload = JSON.parse(data.body.payload)
   const userId = payload.user.id
-  // const responseUrl = payload.response_url
+  const responseUrl = payload.response_url
   // ? použije sa pri validáciach
 
   if (method.userExist(userId)) {
-    // todo validácia či neni miesto obsadené v danom čase
     user[userId].parkingPlace = payload.actions[0].selected_option.value
-    callback(200, '', 'mpty')
+    // todo validácia či neni miesto obsadené v danom čase
+    const valid = await validTimeDateAndParkingPlace(user[userId])
+    if (valid === true) {
+      const save = await helpers.saveBooking(user[userId])
+      if (save === true) {
+        const requestOptions = options.datepicker(
+          'The place has been booked',
+          'https://code-planet.eu/images/question.png'
+        )
+
+        requestOptions.url = responseUrl
+        method.postResponse(requestOptions, callback)
+      }
+      //? callback že všetko sa uložilo a pošle sa textak že user si spravil rezerváciu :p
+    } else {
+      const prettyDate = helpers.formatDate(user[userId].date)
+      const requestOptions = await options.booking(
+        prettyDate,
+        user[userId],
+        valid,
+        true,
+        'https://code-planet.eu/images/warn.png'
+      )
+
+      requestOptions.url = responseUrl
+      method.postResponse(requestOptions, callback)
+    }
   } else {
-    callback(400, { Error: 'User does not exist' }, 'json')
+    const requestOptions = options.datepicker(
+      'Session expired, please try again',
+      'https://code-planet.eu/images/warn.png'
+    )
+    requestOptions.url = responseUrl
+    method.postResponse(requestOptions, callback)
   }
 }
 
