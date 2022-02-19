@@ -32,6 +32,7 @@ method.post_book_date = async (data, callback) => {
   const payload = JSON.parse(data.body.payload)
   const userId = payload.user.id
   const responseUrl = payload.response_url
+  const prettyDate = helpers.formatDate(payload.actions[0].selected_date)
 
   if (!method.userExist(userId)) {
     method.initUser(userId)
@@ -45,20 +46,25 @@ method.post_book_date = async (data, callback) => {
     if (await validBookingDateTime(payload)) {
       // todo následne pridať ukladanie do databázy
       user[userId].date = payload.actions[0].selected_date
-      const prettyDate = helpers.formatDate(payload.actions[0].selected_date)
       const requestOptions = await options.booking(prettyDate, user[userId])
 
       requestOptions.url = responseUrl
       method.postResponse(requestOptions)
       callback(200, '', 'mpty')
     } else {
-      const requestOptions = options.datepicker(
-        '*You already have a reservation for the selected day.* (please select another day)',
-        'https://code-planet.eu/images/warn.png'
-      )
+      // const requestOptions = options.datepicker(
+      //   '*You already have a reservation for the selected day.* (please select another day)',
+      //   'https://code-planet.eu/images/warn.png'
+      // )
 
+      // requestOptions.url = responseUrl
+      // method.postResponse(requestOptions)
+      // callback(200, '', 'mpty')
+
+      const requestOptions = await options.onlyShowParkingPlace(user[userId], prettyDate)
       requestOptions.url = responseUrl
       method.postResponse(requestOptions)
+
       callback(200, '', 'mpty')
     }
   } else {
@@ -143,7 +149,6 @@ method.post_parking_place = async (data, callback) => {
         callback(200, '', 'mpty')
       }
       // ? callback že všetko sa uložilo a pošle sa textak že user si spravil rezerváciu :p
-    } else if (valid === 'onlyShow') {
     } else {
       const prettyDate = helpers.formatDate(user[userId].date)
       const requestOptions = await options.booking(

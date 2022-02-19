@@ -64,11 +64,9 @@ validator.validTimeDateAndParkingPlace = data => {
             } else {
               const freeTime = !book[0].time.filter(el => el === 'AM')[0] ? 'AM' : 'PM'
               resolve(
-                'onlyShow'
-
-                // `*${
-                //   config.parkingPlaces[book[0].place.split('-')[1]]
-                // } is free only at ${freeTime}, you have selected 2 times [${time}]* (you can only book ${freeTime} on this place)`
+                `*${
+                  config.parkingPlaces[book[0].place.split('-')[1]]
+                } is free only at ${freeTime}, you have selected 2 times [${time}]* (you can only book ${freeTime} on this place)`
               ) // ? book == 1 máš 2 časy takže passe zase :p
             }
           } else {
