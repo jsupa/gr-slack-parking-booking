@@ -41,11 +41,11 @@ method.post_book_date = async (data, callback) => {
   user[userId].id = payload.user.id
   user[userId].name = payload.user.name
   user[userId].clearTime()
+  user[userId].date = payload.actions[0].selected_date
 
   if (validBookDateRanage(payload)) {
     if (await validBookingDateTime(payload)) {
       // todo následne pridať ukladanie do databázy
-      user[userId].date = payload.actions[0].selected_date
       const requestOptions = await options.booking(prettyDate, user[userId])
 
       requestOptions.url = responseUrl
@@ -133,7 +133,7 @@ method.post_parking_place = async (data, callback) => {
       const save = await helpers.saveBooking(user[userId])
       if (save === true) {
         const webHookOptions = await options.bookedNotif(user[userId])
-        webHookOptions.url = 'https://hooks.slack.com/services/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'
+        webHookOptions.url = 'https://hooks.slack.com/services/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'
         method.postResponse(webHookOptions)
 
         delete user[payload.user.id]
