@@ -39,6 +39,7 @@ method.post_book_date = async (data, callback) => {
 
   user[userId].id = payload.user.id
   user[userId].name = payload.user.name
+  user[userId].clearTime()
 
   if (validBookDateRanage(payload)) {
     if (await validBookingDateTime(payload)) {
@@ -46,10 +47,10 @@ method.post_book_date = async (data, callback) => {
       user[userId].date = payload.actions[0].selected_date
       const prettyDate = helpers.formatDate(payload.actions[0].selected_date)
       const requestOptions = await options.booking(prettyDate, user[userId])
-      // // todo spraviť dynamicky zobrazovať len miesta a časy kde je volné
-      // ? HOTVOKA ✅
+
       requestOptions.url = responseUrl
-      method.postResponse(requestOptions, callback)
+      method.postResponse(requestOptions)
+      callback(200, '', 'mpty')
     } else {
       const requestOptions = options.datepicker(
         '*You already have a reservation for the selected day.* (please select another day)',
@@ -57,7 +58,8 @@ method.post_book_date = async (data, callback) => {
       )
 
       requestOptions.url = responseUrl
-      method.postResponse(requestOptions, callback)
+      method.postResponse(requestOptions)
+      callback(200, '', 'mpty')
     }
   } else {
     const requestOptions = options.datepicker(
@@ -66,7 +68,8 @@ method.post_book_date = async (data, callback) => {
     )
 
     requestOptions.url = responseUrl
-    method.postResponse(requestOptions, callback)
+    method.postResponse(requestOptions)
+    callback(200, '', 'mpty')
   }
 }
 
@@ -81,7 +84,8 @@ method.post_reset_date = (data, callback) => {
   const requestOptions = options.datepicker()
 
   requestOptions.url = responseUrl
-  method.postResponse(requestOptions, callback)
+  method.postResponse(requestOptions)
+  callback(200, '', 'mpty')
 }
 
 method.post_select_time = (data, callback) => {
@@ -104,7 +108,8 @@ method.post_select_time = (data, callback) => {
       'https://code-planet.eu/images/warn.png'
     )
     requestOptions.url = responseUrl
-    method.postResponse(requestOptions, callback)
+    method.postResponse(requestOptions)
+    callback(200, '', 'mpty')
   }
 }
 
@@ -121,15 +126,24 @@ method.post_parking_place = async (data, callback) => {
     if (valid === true) {
       const save = await helpers.saveBooking(user[userId])
       if (save === true) {
+        const webHookOptions = await options.bookedNotif(user[userId])
+        webHookOptions.url = 'https://hooks.slack.com/services/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'
+        method.postResponse(webHookOptions)
+
+        delete user[payload.user.id]
+
         const requestOptions = options.datepicker(
           'The place has been booked',
           'https://code-planet.eu/images/question.png'
         )
 
         requestOptions.url = responseUrl
-        method.postResponse(requestOptions, callback)
+        method.postResponse(requestOptions)
+
+        callback(200, '', 'mpty')
       }
-      //? callback že všetko sa uložilo a pošle sa textak že user si spravil rezerváciu :p
+      // ? callback že všetko sa uložilo a pošle sa textak že user si spravil rezerváciu :p
+    } else if (valid === 'onlyShow') {
     } else {
       const prettyDate = helpers.formatDate(user[userId].date)
       const requestOptions = await options.booking(
@@ -141,7 +155,8 @@ method.post_parking_place = async (data, callback) => {
       )
 
       requestOptions.url = responseUrl
-      method.postResponse(requestOptions, callback)
+      method.postResponse(requestOptions)
+      callback(200, '', 'mpty')
     }
   } else {
     const requestOptions = options.datepicker(
@@ -149,7 +164,8 @@ method.post_parking_place = async (data, callback) => {
       'https://code-planet.eu/images/warn.png'
     )
     requestOptions.url = responseUrl
-    method.postResponse(requestOptions, callback)
+    method.postResponse(requestOptions)
+    callback(200, '', 'mpty')
   }
 }
 
@@ -165,10 +181,9 @@ method.initUser = userId => {
   user[userId] = new User()
 }
 
-method.postResponse = (options, callback) => {
+method.postResponse = options => {
   request(options, error => {
-    if (error) callback(500, { Error: 'Something went wrong', message: error }, 'json')
-    callback(200, '', 'mpty')
+    if (error) throw error
   })
 }
 

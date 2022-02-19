@@ -20,10 +20,16 @@ validator.validBookingDateTime = data => {
     _data.read('', 'booking', (err, bookingData) => {
       if (!err && bookingData) {
         const userCheck = bookingData.filter(el => el.date === date && el.user_id === userId)
-        if (userCheck.length < 2) {
-          resolve(true)
-        } else {
+        if (userCheck.length === 2) {
           resolve(false)
+        } else if (userCheck.length === 1) {
+          if (userCheck[0].time.length === 2) {
+            resolve(false)
+          } else {
+            resolve(true)
+          }
+        } else {
+          resolve(true)
         }
       } else {
         resolve(false)
@@ -58,9 +64,11 @@ validator.validTimeDateAndParkingPlace = data => {
             } else {
               const freeTime = !book[0].time.filter(el => el === 'AM')[0] ? 'AM' : 'PM'
               resolve(
-                `*${
-                  config.parkingPlaces[book[0].place.split('-')[1]]
-                } is free only at ${freeTime}, you have selected 2 times [${time}]* (you can only book ${freeTime} on this place)`
+                'onlyShow'
+
+                // `*${
+                //   config.parkingPlaces[book[0].place.split('-')[1]]
+                // } is free only at ${freeTime}, you have selected 2 times [${time}]* (you can only book ${freeTime} on this place)`
               ) // ? book == 1 máš 2 časy takže passe zase :p
             }
           } else {
